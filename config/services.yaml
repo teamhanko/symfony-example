@@ -34,3 +34,11 @@ services:
         $sender: '%app.notifications.email_sender%'
 
     Symfony\Component\Security\Http\Logout\LogoutUrlGenerator: '@security.logout_url_generator'
+
+    App\Twig\HankoExtension:
+        arguments:
+            $hankoApiUrl: '%env(HANKO_API_URL)%'
+
+    App\Security\HankoLoginAuthenticator:
+        arguments:
+            $hankoApiUrl: '%env(HANKO_API_URL)%'

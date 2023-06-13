@@ -5,6 +5,18 @@
 {% block main %}
     <h1>{{ 'title.edit_user'|trans }}</h1>
 
+    {#
+    This references the Stimulus controller defined in
+    "assets/controllers/editUser-controller.js".
+    See https://symfony.com/doc/current/frontend/encore/simple-example.html#stimulus-symfony-ux
+    More info on Symfony UX https://ux.symfony.com
+    #}
+    <div {{ stimulus_controller('editUser', {
+        'hankoApiUrl': hanko_api_url()
+    }) }}{# @see assets/controllers/editUser-controller.js #}>
+        <hanko-profile {{ stimulus_target('editUser', 'hankoProfile') }}></hanko-profile>
+    </div>
+
     {{ form_start(form) }}
         {{ form_widget(form) }}
 
@@ -15,12 +27,6 @@
 {% endblock %}
 
 {% block sidebar %}
-    <div class="section">
-        <a href="{{ path('user_change_password') }}" class="btn btn-lg btn-block btn-danger">
-            <i class="fa fa-lock" aria-hidden="true"></i> {{ 'action.change_password'|trans }}
-        </a>
-    </div>
-
     {{ parent() }}
 
     {{ show_source_code(_self) }}

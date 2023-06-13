@@ -56,25 +56,4 @@ class UserController extends AbstractController
             'form' => $form,
         ]);
     }
-
-    #[Route('/change-password', name: 'user_change_password', methods: ['GET', 'POST'])]
-    public function changePassword(
-        #[CurrentUser] User $user,
-        Request $request,
-        EntityManagerInterface $entityManager,
-        LogoutUrlGenerator $logoutUrlGenerator,
-    ): Response {
-        $form = $this->createForm(ChangePasswordType::class, $user);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-
-            return $this->redirect($logoutUrlGenerator->getLogoutPath());
-        }
-
-        return $this->render('user/change_password.html.twig', [
-            'form' => $form,
-        ]);
-    }
 }

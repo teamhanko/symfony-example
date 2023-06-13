@@ -12,10 +12,16 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Form\UserType;
+use App\Repository\UserRepository;
+use App\Security\HankoUser;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Http\Util\TargetPathTrait;
@@ -55,8 +61,49 @@ class SecurityController extends AbstractController
         return $this->render('security/login.html.twig', [
             // last username entered by the user (if any)
             'last_username' => $helper->getLastUsername(),
-            // last authentication error (if any)
-            'error' => $helper->getLastAuthenticationError(),
+        ]);
+    }
+
+    /*
+     * The $user argument type (?User) must be nullable because the login page
+     * must be accessible to anonymous visitors too.
+     */
+    #[Route('/register', name: 'security_register', methods: ['GET', 'POST'])]
+    public function register(
+        #[CurrentUser] ?UserInterface $user,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        UserRepository $userRepository
+    ): Response {
+        // if user is not a HankoUser or does not exist, don't display the register page
+        // as only HankoUsers can be registered
+        if (!$user instanceof HankoUser) {
+            return $this->redirectToRoute('blog_index');
+        }
+
+        // this statement solves an edge-case: if you change the locale in the login
+        // page, after a successful login you are redirected to a page in the previous
+        // locale. This code regenerates the referrer URL whenever the login page is
+        // browsed, to ensure that its locale is always the current one.
+        $this->saveTargetPath($request->getSession(), 'main', $this->generateUrl('admin_index'));
+
+        $databaseUser = new User();
+        $databaseUser->setHankoSubjectId($user->getUserIdentifier());
+        $userForm = $this->createForm(UserType::class, $databaseUser);
+
+        $userForm->handleRequest($request);
+
+        if ($userForm->isSubmitted() && $userForm->isValid()) {
+            $databaseUser->setUsername($databaseUser->getEmail());
+
+            $entityManager->persist($databaseUser);
+            $entityManager->flush();
+
+            return $this->redirectToRoute('blog_index');
+        }
+
+        return $this->render('security/register.html.twig', [
+            'userForm' => $userForm
         ]);
     }
 

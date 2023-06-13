@@ -30,7 +30,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'symfony_demo_user')]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements UserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -50,8 +50,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\Email]
     private ?string $email = null;
 
-    #[ORM\Column(type: Types::STRING)]
-    private ?string $password = null;
+    #[ORM\Column(type: Types::GUID, unique: true)]
+    #[Assert\Uuid]
+    private ?string $hankoSubjectId = null;
 
     /**
      * @var string[]
@@ -99,16 +100,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->email = $email;
     }
 
-    public function getPassword(): ?string
-    {
-        return $this->password;
-    }
-
-    public function setPassword(string $password): void
-    {
-        $this->password = $password;
-    }
-
     /**
      * Returns the roles or permissions granted to the user for security.
      */
@@ -132,18 +123,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->roles = $roles;
     }
 
-    /**
-     * Returns the salt that was originally used to encode the password.
-     *
-     * {@inheritdoc}
-     */
-    public function getSalt(): ?string
+    public function getHankoSubjectId(): ?string
     {
-        // We're using bcrypt in security.yaml to encode the password, so
-        // the salt value is built-in and you don't have to generate one
-        // See https://en.wikipedia.org/wiki/Bcrypt
+        return $this->hankoSubjectId;
+    }
 
-        return null;
+    public function setHankoSubjectId(?string $hankoSubjectId): void
+    {
+        $this->hankoSubjectId = $hankoSubjectId;
     }
 
     /**
@@ -162,8 +149,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function __serialize(): array
     {
-        // add $this->salt too if you don't use Bcrypt or Argon2i
-        return [$this->id, $this->username, $this->password];
+        return [$this->id, $this->username, $this->hankoSubjectId];
     }
 
     /**
@@ -171,7 +157,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function __unserialize(array $data): void
     {
-        // add $this->salt too if you don't use Bcrypt or Argon2i
-        [$this->id, $this->username, $this->password] = $data;
+        [$this->id, $this->username, $this->hankoSubjectId] = $data;
     }
 }

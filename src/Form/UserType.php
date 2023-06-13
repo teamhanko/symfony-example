@@ -43,12 +43,21 @@ class UserType extends AbstractType
             ->add('username', TextType::class, [
                 'label' => 'label.username',
                 'disabled' => true,
-            ])
-            ->add('fullName', TextType::class, [
-                'label' => 'label.fullname',
+                'attr' => [
+                    'data-register-target' => 'username'
+                ]
             ])
             ->add('email', EmailType::class, [
                 'label' => 'label.email',
+                'attr' => [
+                    'data-register-target' => 'email'
+                ]
+            ])
+            ->add('fullName', TextType::class, [
+                'label' => 'label.fullname',
+                'attr' => [
+                    'data-register-target' => 'fullName'
+                ]
             ])
         ;
     }

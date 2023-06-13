@@ -12,19 +12,12 @@ import { register } from "@teamhanko/hanko-elements";
  */
 /* stimulusFetch: 'lazy' */
 export default class extends Controller {
-  static targets = ['hankoAuth']
+  static targets = ['hankoProfile']
   static values = {
-    hankoApiUrl: String,
-    lastUsername: String,
-    redirectTo: String,
-    loginPath: String
+    hankoApiUrl: String
   }
 
   async connect() {
     let { hanko } = await register(this.hankoApiUrlValue);
-
-    hanko.onAuthFlowCompleted(async (authFlowCompletedDetail) => {
-      window.location = this.loginPathValue;
-    })
   }
 }

@@ -81,32 +81,4 @@ class UserControllerTest extends WebTestCase
         $this->assertNotNull($user);
         $this->assertSame($newUserEmail, $user->getEmail());
     }
-
-    public function testChangePassword(): void
-    {
-        $client = static::createClient();
-
-        /** @var UserRepository $userRepository */
-        $userRepository = $client->getContainer()->get(UserRepository::class);
-
-        /** @var User $user */
-        $user = $userRepository->findOneByUsername('jane_admin');
-
-        $newUserPassword = 'new-password';
-
-        $client->loginUser($user);
-        $client->request('GET', '/en/profile/change-password');
-        $client->submitForm('Save changes', [
-            'change_password[currentPassword]' => 'kitten',
-            'change_password[newPassword][first]' => $newUserPassword,
-            'change_password[newPassword][second]' => $newUserPassword,
-        ]);
-
-        $this->assertResponseRedirects();
-        $this->assertStringStartsWith(
-            '/en/logout',
-            $client->getResponse()->headers->get('Location') ?? '',
-            'Changing password logout the user.'
-        );
-    }
 }
