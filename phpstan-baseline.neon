@@ -51,7 +51,7 @@ parameters:
 			path: src/Entity/User.php
 
 		-
-			message: "#^Property App\\\\Entity\\\\User\\:\\:\\$password type mapping mismatch\\: property can contain string\\|null but database expects string\\.$#"
+			message: "#^Property App\\\\Entity\\\\User\\:\\:\\$hankoSubjectId type mapping mismatch\\: property can contain string\\|null but database expects string\\.$#"
 			count: 1
 			path: src/Entity/User.php
 

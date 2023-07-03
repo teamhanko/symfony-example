@@ -25,7 +25,6 @@ use function Symfony\Component\String\u;
 class AppFixtures extends Fixture
 {
     public function __construct(
-        private UserPasswordHasherInterface $passwordHasher,
         private SluggerInterface $slugger
     ) {
     }
@@ -43,7 +42,6 @@ class AppFixtures extends Fixture
             $user = new User();
             $user->setFullName($fullname);
             $user->setUsername($username);
-            $user->setPassword($this->passwordHasher->hashPassword($user, $password));
             $user->setEmail($email);
             $user->setRoles($roles);
 

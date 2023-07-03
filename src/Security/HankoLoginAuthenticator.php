@@ -6,45 +6,51 @@ namespace App\Security;
 
 use App\Exception\InvalidPayloadException;
 use App\Exception\InvalidTokenException;
+use App\Exception\KeySetFetchFailedException;
 use Lcobucci\Clock\SystemClock;
 use Lcobucci\JWT\Encoding\JoseEncoder;
 use Lcobucci\JWT\Signer;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Token\Parser;
+use Lcobucci\JWT\UnencryptedToken;
 use Lcobucci\JWT\Validation\Constraint\LooseValidAt;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
 use Lcobucci\JWT\Validation\Validator;
 use Psr\Log\LoggerInterface;
 use Strobotti\JWK\KeyConverter;
 use Strobotti\JWK\KeySetFactory;
-use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpClient\CachingHttpClient;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpKernel\HttpCache\StoreInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
-use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
-use Symfony\Component\Security\Http\HttpUtils;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class HankoLoginAuthenticator extends AbstractAuthenticator
 {
 
+    private readonly HttpClientInterface $client;
+
     public function __construct(
-        private HttpUtils $httpUtils,
-        private LoggerInterface $logger,
-        private HttpClientInterface $client,
-        private string $hankoApiUrl
-    ) {}
+        private readonly LoggerInterface $logger,
+        HttpClientInterface $client,
+        StoreInterface $httpCacheStore,
+        private readonly string $hankoApiUrl
+    ) {
+        $this->client = new CachingHttpClient($client, $httpCacheStore);
+    }
 
     public function supports(Request $request): bool
     {
-        $user = $request->getUser();
-        $isSupported = $request->cookies->has('hanko') && is_null($user);
+        $isSupported = $request->cookies->has('hanko')
+            && !empty($request->cookies->get('hanko'));
 
         if (!$isSupported) {
             $this->logger->debug(sprintf(
@@ -63,11 +69,6 @@ class HankoLoginAuthenticator extends AbstractAuthenticator
         return $isSupported;
     }
 
-    protected function getLoginUrl(Request $request): string
-    {
-        return $this->httpUtils->generateUri($request, 'security_login');
-    }
-
     public function authenticate(Request $request): SelfValidatingPassport
     {
         $this->logger->debug(sprintf(
@@ -78,28 +79,41 @@ class HankoLoginAuthenticator extends AbstractAuthenticator
 
         $jwt = $this->getCredentials($request);
         $parser = new Parser(new JoseEncoder());
+
+        assert(!empty($jwt), 'JWT string value should not be empty');
         $token = $parser->parse($jwt);
 
-        $keyResponse = $this->client->request(
-            'GET',
-            sprintf('%s/.well-known/jwks.json', $this->hankoApiUrl)
-        );
+        if (!$token instanceof UnencryptedToken) {
+            $this->logger->debug('Token not readable');
+            throw new InvalidTokenException();
+        }
 
-        if ($keyResponse->getStatusCode() !== 200) {
+        $keySetFactory = new KeySetFactory();
+
+        try {
+            $keyResponse = $this->client->request(
+                'GET',
+                sprintf('%s/.well-known/jwks.json', $this->hankoApiUrl)
+            );
+
+            if ($keyResponse->getStatusCode() !== 200) {
+                throw new KeySetFetchFailedException();
+            }
+
+            $keySet = $keySetFactory->createFromJSON($keyResponse->getContent());
+        } catch (KeySetFetchFailedException|HttpExceptionInterface|TransportExceptionInterface $e) {
             $this->logger->debug(sprintf(
                 'Could not fetch JWKS from %s',
                 $this->hankoApiUrl
             ));
-            throw new \Exception('e');
-        }
 
-        $keySetFactory = new KeySetFactory();
-        $keySet = $keySetFactory->createFromJSON($keyResponse->getContent());
+            throw new KeySetFetchFailedException("", 0, (!$e instanceof KeySetFetchFailedException) ? $e : null);
+        }
 
         $validator = new Validator();
         $keyConverter = new KeyConverter();
         $kid = $token->headers()->get('kid');
-        if (is_null($kid)) {
+        if (!is_string($kid)) {
             $this->logger->debug(sprintf(
                 'KID missing for token %s',
                 $jwt
@@ -119,9 +133,19 @@ class HankoLoginAuthenticator extends AbstractAuthenticator
         }
 
         $alg = $token->headers()->get('alg');
+        if (!is_string($alg)) {
+            $this->logger->debug(sprintf(
+                'ALG missing for token %s',
+                $jwt
+            ));
+            throw new InvalidTokenException();
+        }
         $signer = $this->getSignerForAlgorithm($alg);
 
-        $key = InMemory::plainText($keyConverter->keyToPem($key));
+        $pemKey = $keyConverter->keyToPem($key);
+
+        assert(!empty($pemKey), 'Converted JWK should not be empty');
+        $key = InMemory::plainText($pemKey);
 
         $validationResult = $validator->validate(
             $token,
@@ -142,12 +166,12 @@ class HankoLoginAuthenticator extends AbstractAuthenticator
         }
 
         $claims = $token->claims()->all();
-        $this->logger->debug(sprintf(
-            'Token claims: %s',
-            json_encode($claims)
-        ));
+        $this->logger->debug(
+            sprintf('Token claims: %s', implode(', ', array_keys($claims))),
+            $claims
+        );
 
-        if (!isset($claims['sub'])) {
+        if (!isset($claims['sub']) || !is_string($claims['sub'])) {
             $this->logger->debug('Invalid payload');
             throw new InvalidPayloadException('sub');
         }
@@ -164,7 +188,7 @@ class HankoLoginAuthenticator extends AbstractAuthenticator
 
     private function getCredentials(Request $request): string
     {
-        $token = $request->cookies->get('hanko', false);
+        $token = $request->cookies->get('hanko');
 
         if (!is_string($token)) {
             throw new BadRequestHttpException(

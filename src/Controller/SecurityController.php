@@ -16,7 +16,7 @@ use App\Form\UserType;
 use App\Repository\UserRepository;
 use App\Security\HankoUser;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -87,14 +87,24 @@ class SecurityController extends AbstractController
         // browsed, to ensure that its locale is always the current one.
         $this->saveTargetPath($request->getSession(), 'main', $this->generateUrl('admin_index'));
 
-        $databaseUser = new User();
+        $requestData = $request->request->all();
+        if (isset($requestData['user']['email'])) {
+            $databaseUser = $userRepository->findOneByEmail($requestData['user']['email']);
+        }
+
+        if (!isset($databaseUser)) {
+            $databaseUser = new User();
+        }
+
         $databaseUser->setHankoSubjectId($user->getUserIdentifier());
         $userForm = $this->createForm(UserType::class, $databaseUser);
 
         $userForm->handleRequest($request);
 
         if ($userForm->isSubmitted() && $userForm->isValid()) {
-            $databaseUser->setUsername($databaseUser->getEmail());
+            $userEmail = $databaseUser->getEmail();
+            assert(!empty($userEmail), 'User email should not be empty');
+            $databaseUser->setUsername($userEmail);
 
             $entityManager->persist($databaseUser);
             $entityManager->flush();
@@ -116,6 +126,6 @@ class SecurityController extends AbstractController
     #[Route('/logout', name: 'security_logout')]
     public function logout(): void
     {
-        throw new \Exception('This should never be reached!');
+        throw new RuntimeException('This should never be reached!');
     }
 }

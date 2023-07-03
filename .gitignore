@@ -2,7 +2,6 @@
 /public/build/images/glyphicons-*
 
 .php-version
-.idea
 
 ###> symfony/framework-bundle ###
 /.env.local

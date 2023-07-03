@@ -22,7 +22,6 @@ class AddUserCommandTest extends AbstractCommandTest
      */
     private array $userData = [
         'username' => 'chuck_norris',
-        'password' => 'foobar',
         'email' => 'chuck@norris.com',
         'full-name' => 'Chuck Norris',
     ];
@@ -91,15 +90,11 @@ class AddUserCommandTest extends AbstractCommandTest
         /** @var UserRepository $repository */
         $repository = $this->getContainer()->get(UserRepository::class);
 
-        /** @var UserPasswordHasherInterface $passwordHasher */
-        $passwordHasher = $this->getContainer()->get(UserPasswordHasherInterface::class);
-
         $user = $repository->findOneByEmail($this->userData['email']);
 
         $this->assertNotNull($user);
         $this->assertSame($this->userData['full-name'], $user->getFullName());
         $this->assertSame($this->userData['username'], $user->getUsername());
-        $this->assertTrue($passwordHasher->isPasswordValid($user, $this->userData['password']));
         $this->assertSame($isAdmin ? ['ROLE_ADMIN'] : ['ROLE_USER'], $user->getRoles());
     }
 
