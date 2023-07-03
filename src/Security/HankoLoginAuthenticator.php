@@ -35,7 +35,6 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class HankoLoginAuthenticator extends AbstractAuthenticator
 {
-
     private readonly HttpClientInterface $client;
 
     public function __construct(
@@ -80,7 +79,7 @@ class HankoLoginAuthenticator extends AbstractAuthenticator
         $jwt = $this->getCredentials($request);
         $parser = new Parser(new JoseEncoder());
 
-        assert(!empty($jwt), 'JWT string value should not be empty');
+        \assert(!empty($jwt), 'JWT string value should not be empty');
         $token = $parser->parse($jwt);
 
         if (!$token instanceof UnencryptedToken) {
@@ -96,7 +95,7 @@ class HankoLoginAuthenticator extends AbstractAuthenticator
                 sprintf('%s/.well-known/jwks.json', $this->hankoApiUrl)
             );
 
-            if ($keyResponse->getStatusCode() !== 200) {
+            if (200 !== $keyResponse->getStatusCode()) {
                 throw new KeySetFetchFailedException();
             }
 
@@ -107,13 +106,13 @@ class HankoLoginAuthenticator extends AbstractAuthenticator
                 $this->hankoApiUrl
             ));
 
-            throw new KeySetFetchFailedException("", 0, (!$e instanceof KeySetFetchFailedException) ? $e : null);
+            throw new KeySetFetchFailedException('', 0, (!$e instanceof KeySetFetchFailedException) ? $e : null);
         }
 
         $validator = new Validator();
         $keyConverter = new KeyConverter();
         $kid = $token->headers()->get('kid');
-        if (!is_string($kid)) {
+        if (!\is_string($kid)) {
             $this->logger->debug(sprintf(
                 'KID missing for token %s',
                 $jwt
@@ -123,7 +122,7 @@ class HankoLoginAuthenticator extends AbstractAuthenticator
 
         $key = $keySet->getKeyById($kid);
 
-        if (is_null($key)) {
+        if (null === $key) {
             $this->logger->debug(sprintf(
                 'Key (%s) missing from %s JWKS',
                 $kid,
@@ -133,7 +132,7 @@ class HankoLoginAuthenticator extends AbstractAuthenticator
         }
 
         $alg = $token->headers()->get('alg');
-        if (!is_string($alg)) {
+        if (!\is_string($alg)) {
             $this->logger->debug(sprintf(
                 'ALG missing for token %s',
                 $jwt
@@ -144,7 +143,7 @@ class HankoLoginAuthenticator extends AbstractAuthenticator
 
         $pemKey = $keyConverter->keyToPem($key);
 
-        assert(!empty($pemKey), 'Converted JWK should not be empty');
+        \assert(!empty($pemKey), 'Converted JWK should not be empty');
         $key = InMemory::plainText($pemKey);
 
         $validationResult = $validator->validate(
@@ -171,7 +170,7 @@ class HankoLoginAuthenticator extends AbstractAuthenticator
             $claims
         );
 
-        if (!isset($claims['sub']) || !is_string($claims['sub'])) {
+        if (!isset($claims['sub']) || !\is_string($claims['sub'])) {
             $this->logger->debug('Invalid payload');
             throw new InvalidPayloadException('sub');
         }
@@ -190,10 +189,8 @@ class HankoLoginAuthenticator extends AbstractAuthenticator
     {
         $token = $request->cookies->get('hanko');
 
-        if (!is_string($token)) {
-            throw new BadRequestHttpException(
-                sprintf('The key "%s" must be a string, "%s" given.', 'hanko', gettype($token))
-            );
+        if (!\is_string($token)) {
+            throw new BadRequestHttpException(sprintf('The key "%s" must be a string, "%s" given.', 'hanko', \gettype($token)));
         }
 
         return $token;
@@ -224,13 +221,7 @@ class HankoLoginAuthenticator extends AbstractAuthenticator
         ];
 
         if (!isset($signerMap[$signatureAlgorithm])) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    'The algorithm "%s" is not supported by %s',
-                    $signatureAlgorithm,
-                    self::class
-                )
-            );
+            throw new \InvalidArgumentException(sprintf('The algorithm "%s" is not supported by %s', $signatureAlgorithm, self::class));
         }
 
         $signerClass = $signerMap[$signatureAlgorithm];

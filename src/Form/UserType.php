@@ -25,9 +25,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 class UserType extends AbstractType
 {
-    /**
-     * {@inheritdoc}
-     */
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         // For the full reference of options defined by each form field type
@@ -44,27 +41,24 @@ class UserType extends AbstractType
                 'label' => 'label.username',
                 'disabled' => true,
                 'attr' => [
-                    'data-register-target' => 'username'
-                ]
+                    'data-register-target' => 'username',
+                ],
             ])
             ->add('email', EmailType::class, [
                 'label' => 'label.email',
                 'attr' => [
-                    'data-register-target' => 'email'
-                ]
+                    'data-register-target' => 'email',
+                ],
             ])
             ->add('fullName', TextType::class, [
                 'label' => 'label.fullname',
                 'attr' => [
-                    'data-register-target' => 'fullName'
-                ]
+                    'data-register-target' => 'fullName',
+                ],
             ])
         ;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([

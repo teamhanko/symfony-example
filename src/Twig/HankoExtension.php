@@ -19,7 +19,7 @@ class HankoExtension extends AbstractExtension
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('hanko_api_url', [$this, 'getHankoApiUrl'])
+            new TwigFunction('hanko_api_url', [$this, 'getHankoApiUrl']),
         ];
     }
 

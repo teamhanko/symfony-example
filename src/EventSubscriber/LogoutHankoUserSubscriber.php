@@ -11,16 +11,15 @@ use Symfony\Component\Security\Http\Event\LogoutEvent;
 
 class LogoutHankoUserSubscriber implements EventSubscriberInterface
 {
-
     public function __construct(
         private readonly UrlGeneratorInterface $urlGenerator
-    )
-    {}
+    ) {
+    }
 
     public static function getSubscribedEvents(): array
     {
         return [
-            LogoutEvent::class => 'onLogout'
+            LogoutEvent::class => 'onLogout',
         ];
     }
 

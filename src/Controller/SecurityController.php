@@ -16,7 +16,6 @@ use App\Form\UserType;
 use App\Repository\UserRepository;
 use App\Security\HankoUser;
 use Doctrine\ORM\EntityManagerInterface;
-use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -103,7 +102,7 @@ class SecurityController extends AbstractController
 
         if ($userForm->isSubmitted() && $userForm->isValid()) {
             $userEmail = $databaseUser->getEmail();
-            assert(!empty($userEmail), 'User email should not be empty');
+            \assert(!empty($userEmail), 'User email should not be empty');
             $databaseUser->setUsername($userEmail);
 
             $entityManager->persist($databaseUser);
@@ -113,7 +112,7 @@ class SecurityController extends AbstractController
         }
 
         return $this->render('security/register.html.twig', [
-            'userForm' => $userForm
+            'userForm' => $userForm,
         ]);
     }
 
@@ -126,6 +125,6 @@ class SecurityController extends AbstractController
     #[Route('/logout', name: 'security_logout')]
     public function logout(): void
     {
-        throw new RuntimeException('This should never be reached!');
+        throw new \RuntimeException('This should never be reached!');
     }
 }

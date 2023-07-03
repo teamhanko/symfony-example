@@ -9,7 +9,6 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 class HankoUserProvider implements UserProviderInterface
 {
-
     public function refreshUser(UserInterface $user): UserInterface
     {
         // no need to refresh a user, as it doesn't hold any additional data

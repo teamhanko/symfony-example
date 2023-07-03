@@ -8,7 +8,6 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 class HankoUser implements UserInterface
 {
-
     private string $hankoSubjectId;
 
     public function __construct(string $hankoSubscriberId)

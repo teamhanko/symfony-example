@@ -14,12 +14,11 @@ use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface
 
 class HankoAuthenticationEntryPoint implements AuthenticationEntryPointInterface
 {
-
     public function __construct(
         private readonly UrlGeneratorInterface $router,
         private readonly Security $security
-    )
-    {}
+    ) {
+    }
 
     public function start(Request $request, AuthenticationException $authException = null): Response
     {

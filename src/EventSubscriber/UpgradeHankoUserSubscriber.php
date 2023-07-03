@@ -14,12 +14,11 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class UpgradeHankoUserSubscriber implements EventSubscriberInterface
 {
-
     public function __construct(
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly Security $security
-    )
-    {}
+    ) {
+    }
 
     public static function getSubscribedEvents(): array
     {
