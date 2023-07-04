@@ -1,4 +1,6 @@
 {
+    "name": "hanko/symfony-demo",
+    "description": "A demo app based on the Symfony demo integrating Hanko login",
     "license": "proprietary",
     "type": "project",
     "minimum-stability": "stable",
@@ -17,7 +19,7 @@
         "doctrine/doctrine-bundle": "^2.8",
         "doctrine/doctrine-migrations-bundle": "^3.0",
         "doctrine/orm": "^2.11",
-        "lcobucci/clock": "*",
+        "lcobucci/clock": "^3.0",
         "lcobucci/jwt": "^5.0",
         "league/commonmark": "^2.1",
         "strobotti/php-jwk": "^1.4",
