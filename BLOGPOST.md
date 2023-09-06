@@ -54,7 +54,7 @@ The placeholder `<id>` would be your Hanko cloud instance ID. If you don't use H
 
 As we need to access the value of our new environment variable `HANKO_API_URL` somehow inside Twig templates, we chose to create a Twig-Extension:
 
-(GitHub embed of the TwigExtension)
+<script src="https://emgithub.com/embed-v2.js?target=https%3A%2F%2Fgithub.com%2Fteamhanko%2Fsymfony-example%2Fblob%2Fmain%2Fsrc%2FTwig%2FHankoExtension.php&style=default&type=code&showBorder=on&showLineNumbers=on&showFileMeta=on&showFullPath=on&showCopy=on&fetchFromJsDelivr=on"></script>
 
 As you can see, there is a `string $hankoApiUrl` parameter in the constructor function of this class. As Symfony auto-discovers  TwigExtensions and tags them correctly, our class is going to be loaded and injected into the Twig environment right away.
 Without "telling" the Symfony DI Container about the value for the `$hankoApiUrl` parameter, Symfony won't be able to instantiate our class. For service creation to work, we need to manually configure a service argument in `config/services.yaml `.
@@ -67,7 +67,7 @@ App\Twig\HankoExtension:
 
 As the Symfony Demo Application uses Stimulus controllers with the Symfony UX stimulus-bridge for the original authentication forms, we adapt the `assets/controllers/login-controller.js` to load the `hanko-auth` custom element.
 
-(GitHub embed of the login-controller)
+<script src="https://emgithub.com/embed-v2.js?target=https%3A%2F%2Fgithub.com%2Fteamhanko%2Fsymfony-example%2Fblob%2Fmain%2Fassets%2Fcontrollers%2Flogin-controller.js&style=default&type=code&showBorder=on&showLineNumbers=on&showFileMeta=on&showFullPath=on&showCopy=on&fetchFromJsDelivr=on"></script>
 
 As you can see, the adapted `login-controller` defines the stimulus values `hankoApiUrl` and `loginPath`.
 
@@ -75,7 +75,7 @@ Those values are provided in the `templates/security/login.html.twig` using the 
 
 There is also a stimulus target defined in the component and marked by the `stimulus_target` Twig helper function.
 
-(GitHub embed of the login.html.twig template)
+<script src="https://emgithub.com/embed-v2.js?target=https%3A%2F%2Fgithub.com%2Fteamhanko%2Fsymfony-example%2Fblob%2Fmain%2Ftemplates%2Fsecurity%2Flogin.html.twig&style=default&type=code&showBorder=on&showLineNumbers=on&showFileMeta=on&showFullPath=on&showCopy=on&fetchFromJsDelivr=on"></script>
 
 The most important part of this template is the following:
 
@@ -101,7 +101,7 @@ Leveraging the power of the Symfony Security component, we can authenticate the 
 
 The custom Authenticator for this example looks like this:
 
-(GitHub embed HankoLoginAuthenticator)
+<script src="https://emgithub.com/embed-v2.js?target=https%3A%2F%2Fgithub.com%2Fteamhanko%2Fsymfony-example%2Fblob%2Fmain%2Fsrc%2FSecurity%2FHankoLoginAuthenticator.php&style=default&type=code&showBorder=on&showLineNumbers=on&showFileMeta=on&showFullPath=on&showCopy=on&fetchFromJsDelivr=on"></script>
 
 And has a dependency on three Composer packages which you need to install like this:
 
@@ -179,17 +179,17 @@ As the `database_users` provider cannot provide a user when the user registers f
 
 The `hanko_users` provider has a custom service called `HankoUserProvider` associated to it, looking like this:
 
-(GitHub embed HankUserProvider)
+<script src="https://emgithub.com/embed-v2.js?target=https%3A%2F%2Fgithub.com%2Fteamhanko%2Fsymfony-example%2Fblob%2Fmain%2Fsrc%2FSecurity%2FHankoUserProvider.php&style=default&type=code&showBorder=on&showLineNumbers=on&showFileMeta=on&showFullPath=on&showCopy=on&fetchFromJsDelivr=on"></script>
 
 It creates a new `HankoUser` object using the given `$identifier` previously set from the JWTs `sub` claim in the `HankoUserProvider`.
 
 When those steps are done, there is either a `HankoUser` or a normal `User` object set in the Symfony Security module. Depending on which type of User is currently authenticated, we can decide to just show a registration form and don't allow the user to go further using a custom `entry_point` in the `main` firewall part of the `security.yaml` configuration.
 
-(GitHub embed of the HankoAuthenticationEntryPoint)
+<script src="https://emgithub.com/embed-v2.js?target=https%3A%2F%2Fgithub.com%2Fteamhanko%2Fsymfony-example%2Fblob%2Fmain%2Fsrc%2FSecurity%2FHankoAuthenticationEntryPoint.php&style=default&type=code&showBorder=on&showLineNumbers=on&showFileMeta=on&showFullPath=on&showCopy=on&fetchFromJsDelivr=on"></script>
 
 Additionally we need to create a new `EventSubscriber` listening on all `KernelEvents::REQUEST` events to redirect users from every other URL than the registration URL back there.
 
-(GitHub embed of UpgradeHankoUserSubscriber)
+<script src="https://emgithub.com/embed-v2.js?target=https%3A%2F%2Fgithub.com%2Fteamhanko%2Fsymfony-example%2Fblob%2Fmain%2Fsrc%2FEventSubscriber%2FUpgradeHankoUserSubscriber.php&style=default&type=code&showBorder=on&showLineNumbers=on&showFileMeta=on&showFullPath=on&showCopy=on&fetchFromJsDelivr=on"></script>
 
 For the purpose of registering a new user, a new Controller method called `register` placed in the `SecurityController` of the Demo project is required looking like this:
 
@@ -288,7 +288,7 @@ export default class extends Controller {
 
 The Stimulus targets used by the controller displayed above aren't set using the `stimulus_`-Twig helper functions but provided in the `UserType` Form-Type.
 
-(GitHub embed of the UserType)
+<script src="https://emgithub.com/embed-v2.js?target=https%3A%2F%2Fgithub.com%2Fteamhanko%2Fsymfony-example%2Fblob%2Fmain%2Fsrc%2FForm%2FUserType.php&style=default&type=code&showBorder=on&showLineNumbers=on&showFileMeta=on&showFullPath=on&showCopy=on&fetchFromJsDelivr=on"></script>
 
 ## Modifying the User entity and removing passwords from the application
 
@@ -313,4 +313,4 @@ We also need to do some manual steps to allow users to log out of their account 
 
 For this, another `EventSUbscriber` is required:
 
-(GitHub embed of the LogoutHankoUserSubscriber)
+<script src="https://emgithub.com/embed-v2.js?target=https%3A%2F%2Fgithub.com%2Fteamhanko%2Fsymfony-example%2Fblob%2Fmain%2Fsrc%2FEventSubscriber%2FLogoutHankoUserSubscriber.php&style=default&type=code&showBorder=on&showLineNumbers=on&showFileMeta=on&showFullPath=on&showCopy=on&fetchFromJsDelivr=on"></script>
