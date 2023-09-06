@@ -146,7 +146,7 @@ firewalls:
         entry_point: App\Security\HankoAuthenticationEntryPoint
 ```
 
-You can find the full `security.yaml` [here](https://link-missing).
+You can find the full `security.yaml` [here](https://github.com/teamhanko/symfony-example/blob/main/config/packages/security.yaml).
 
 Contrary to the default, the `main` firewall has the configuration attribute `stateless: true` which indicates to the Symfony Security component: don't save the resulting authentication state to a cookie and read this cookie the next time a user wants to do something but run the Authenticator on every request and thus validate the `Hanko` cookie (containing a JWT signed by Hanko) on each request.
 
